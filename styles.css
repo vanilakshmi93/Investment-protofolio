@@ -1,15 +1,39 @@
 body {
     font-family: Arial, sans-serif;
+    margin: 0;
     padding: 20px;
+    background-color: #f4f4f9;
 }
 
 .container {
     max-width: 800px;
     margin: 0 auto;
+    padding: 20px;
+    background-color: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 }
 
-h1 {
-    text-align: center;
+h1, h2, h3 {
+    color: #333;
+}
+
+button {
+    margin: 10px 0;
+    padding: 10px 15px;
+    background-color: #0400ff;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+button:hover {
+    background-color: #8900b3;
+}
+
+.hidden {
+    display: none;
 }
 
 table {
@@ -19,54 +43,77 @@ table {
 }
 
 table, th, td {
-    border: 1px solid black;
+    border: 1px solid #ddd;
+    padding: 8px;
 }
 
-th, td {
-    padding: 10px;
-    text-align: center;
+th {
+    background-color: #f2f2f2;
+    text-align: left;
 }
-
-button {
-    padding: 10px;
-    margin-top: 10px;
-    background-color: blue;
-    color: white;
-    border: none;
-    cursor: pointer;
-}
-
-button:hover {
-    background-color: darkblue;
-}
-
-.investment-form {
+/* Container styling */
+.form-container {
     margin-top: 20px;
+    padding: 15px;
+    background-color: #f9f9f9;
+    border-radius: 5px;
+    width: 300px;
+}
+
+.form-group {
+    margin-bottom: 15px;
+    display: flex;
+    flex-direction: column;
+}
+
+label {
+    font-weight: bold;
+    margin-bottom: 5px;
 }
 
 input {
-    display: block;
-    width: 100%;
-    padding: 8px;
-    margin: 10px 0;
+    padding: 10px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    font-size: 16px;
 }
 
-.update-btn {
-    background-color: green;
+/* Button styles */
+.button-group {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.blue-btn {
+    background-color: #007bff;
     color: white;
-    padding: 5px;
+    padding: 10px 15px;
     border: none;
+    border-radius: 5px;
     cursor: pointer;
+    font-size: 16px;
 }
 
-.remove-btn {
-    background-color: red;
+.black-btn {
+    background-color: #000;
     color: white;
-    padding: 5px;
+    padding: 10px 15px;
     border: none;
+    border-radius: 5px;
     cursor: pointer;
+    font-size: 16px;
 }
 
-canvas {
-    margin-top: 20px;
+.blue-btn:hover {
+    background-color: #0056b3;
+}
+
+.black-btn:hover {
+    background-color: #333;
+}
+
+/* Responsive behavior for hidden class */
+.hidden {
+    display: none;
 }

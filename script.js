@@ -1,31 +1,131 @@
-const investments = [];
-const totalValueElem = document.getElementById('totalValue');
-const investmentTableBody = document.querySelector('#investmentTable tbody');
+// Elements
+const totalValueEl = document.getElementById('total-value');
+const addInvestmentBtn = document.getElementById('add-investment-btn');
+const investmentForm = document.getElementById('investment-form');
+const submitInvestmentBtn = document.getElementById('submit-investment-btn');
+const cancelBtn = document.getElementById('cancel-btn');
+const investmentTableBody = document.getElementById('investment-table-body');
+const assetNameInput = document.getElementById('asset-name');
+const amountInvestedInput = document.getElementById('amount-invested');
+const currentValueInput = document.getElementById('current-value');
+const formTitle = document.getElementById('form-title');
+const portfolioChartEl = document.getElementById('portfolio-chart');
 
-const portfolioChartCanvas = document.getElementById('portfolioChart');
-let portfolioChart;
+let investments = JSON.parse(localStorage.getItem('investments')) || [];
+let editingInvestment = null;
 
-// Function to calculate and update total portfolio value
-function updateTotalValue() {
-    const totalValue = investments.reduce((acc, investment) => acc + investment.currentValue, 0);
-    totalValueElem.textContent = totalValue.toFixed(2);
-}
+// Load investments on page load
+document.addEventListener('DOMContentLoaded', () => {
+    loadInvestments();
+    renderChart();
+});
 
-// Function to render the portfolio distribution pie chart
-function renderChart() {
-    const assetNames = investments.map(investment => investment.assetName);
-    const assetValues = investments.map(investment => investment.currentValue);
+// Event Listeners
+addInvestmentBtn.addEventListener('click', () => {
+    showForm();
+});
 
-    if (portfolioChart) {
-        portfolioChart.destroy();
+cancelBtn.addEventListener('click', () => {
+    hideForm();
+});
+
+submitInvestmentBtn.addEventListener('click', () => {
+    const assetName = assetNameInput.value.trim();
+    const amountInvested = parseFloat(amountInvestedInput.value);
+    const currentValue = parseFloat(currentValueInput.value);
+
+    if (!assetName || amountInvested <= 0 || currentValue < 0) {
+        alert('Please provide valid investment details.');
+        return;
     }
 
-    portfolioChart = new Chart(portfolioChartCanvas, {
+    if (editingInvestment !== null) {
+        investments[editingInvestment] = { assetName, amountInvested, currentValue };
+        editingInvestment = null;
+    } else {
+        investments.push({ assetName, amountInvested, currentValue });
+    }
+
+    saveInvestments();
+    loadInvestments();
+    renderChart();
+    hideForm();
+});
+
+// Functions
+function showForm(isEdit = false) {
+    investmentForm.classList.remove('hidden');
+    formTitle.textContent = isEdit ? 'Update Investment' : 'Add New Investment';
+}
+
+function hideForm() {
+    investmentForm.classList.add('hidden');
+    assetNameInput.value = '';
+    amountInvestedInput.value = '';
+    currentValueInput.value = '';
+}
+
+function loadInvestments() {
+    investmentTableBody.innerHTML = '';
+    let totalValue = 0;
+
+    investments.forEach((investment, index) => {
+        const percentageChange = ((investment.currentValue - investment.amountInvested) / investment.amountInvested * 100).toFixed(2);
+        totalValue += investment.currentValue;
+
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>${investment.assetName}</td>
+            <td>$${investment.amountInvested.toFixed(2)}</td>
+            <td>$${investment.currentValue.toFixed(2)}</td>
+            <td>${percentageChange}%</td>
+            <td>
+                <button onclick="editInvestment(${index})">Update</button>
+                <button onclick="removeInvestment(${index})">Remove</button>
+            </td>
+        `;
+        investmentTableBody.appendChild(row);
+    });
+
+    totalValueEl.textContent = totalValue.toFixed(2);
+}
+
+function saveInvestments() {
+    localStorage.setItem('investments', JSON.stringify(investments));
+}
+
+function editInvestment(index) {
+    const investment = investments[index];
+    assetNameInput.value = investment.assetName;
+    amountInvestedInput.value = investment.amountInvested;
+    currentValueInput.value = investment.currentValue;
+    editingInvestment = index;
+    showForm(true);
+}
+
+function removeInvestment(index) {
+    investments.splice(index, 1);
+    saveInvestments();
+    loadInvestments();
+    renderChart();
+}
+
+function renderChart() {
+    const ctx = portfolioChartEl.getContext('2d');
+    const labels = investments.map(investment => investment.assetName);
+    const data = investments.map(investment => investment.currentValue);
+
+    if (window.portfolioChart) {
+        window.portfolioChart.destroy();
+    }
+
+    window.portfolioChart = new Chart(ctx, {
         type: 'pie',
         data: {
-            labels: assetNames,
+            labels: labels,
             datasets: [{
-                data: assetValues,
+                label: 'Portfolio Distribution',
+                data: data,
                 backgroundColor: [
                     'rgba(255, 99, 132, 0.2)',
                     'rgba(54, 162, 235, 0.2)',
@@ -44,61 +144,9 @@ function renderChart() {
                 ],
                 borderWidth: 1
             }]
+        },
+        options: {
+            responsive: true
         }
     });
-}
-
-// Function to add a new investment
-function addInvestment() {
-    const assetName = document.getElementById('assetName').value;
-    const amountInvested = parseFloat(document.getElementById('amountInvested').value);
-    const currentValue = parseFloat(document.getElementById('currentValue').value);
-
-    if (!assetName || isNaN(amountInvested) || isNaN(currentValue)) {
-        alert('Please fill in all fields');
-        return;
-    }
-
-    const newInvestment = { assetName, amountInvested, currentValue };
-    investments.push(newInvestment);
-
-    updateInvestmentTable();
-    updateTotalValue();
-    renderChart();
-}
-
-// Function to update the investment table
-function updateInvestmentTable() {
-    investmentTableBody.innerHTML = '';
-    
-    investments.forEach((investment, index) => {
-        const percentageChange = ((investment.currentValue - investment.amountInvested) / investment.amountInvested * 100).toFixed(2);
-
-        const row = document.createElement('tr');
-        row.innerHTML = `
-            <td>${investment.assetName}</td>
-            <td>$${investment.amountInvested.toFixed(2)}</td>
-            <td>$${investment.currentValue.toFixed(2)}</td>
-            <td>${percentageChange}%</td>
-            <td>
-                <button class="update-btn" onclick="updateInvestment(${index})">Update</button>
-                <button class="remove-btn" onclick="removeInvestment(${index})">Remove</button>
-            </td>
-        `;
-        investmentTableBody.appendChild(row);
-    });
-}
-
-// Function to remove an investment
-function removeInvestment(index) {
-    investments.splice(index, 1);
-    updateInvestmentTable();
-    updateTotalValue();
-    renderChart();
-}
-
-// Function to update an investment (you can implement this)
-function updateInvestment(index) {
-    // Add functionality to update the investment
-    console.log(`Updating investment ${index}`);
 }
